@@ -1,6 +1,8 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-const users = [];
+const users = [
+    { id: 1, name: 'Admin', email: 'admin@example.com', password: 'admin123', isAdmin: true }
+];
 const events = [
     { id: 1,
         name: 'Concert',
@@ -30,12 +32,15 @@ const events = [
 ];
 let currentUser = null;
 const mainMenu = async () => {
+    const choices = currentUser && currentUser.isAdmin
+        ? ['Register', 'Login', 'Browse Events', 'Admin Menu', 'Exit']
+        : ['Register', 'Login', 'Browse Events', 'Exit'];
     const answers = await inquirer.prompt([
         {
             type: 'list',
             name: 'action',
-            message: 'Choose an action:',
-            choices: ['Register', 'Login', 'Browse Events', 'Exit'],
+            message: chalk.yellowBright('Choose an action:'),
+            choices: choices,
         },
     ]);
     switch (answers.action) {
@@ -47,6 +52,9 @@ const mainMenu = async () => {
             break;
         case 'Browse Events':
             await browseEvents();
+            break;
+        case 'Admin Menu':
+            await adminMenu();
             break;
         case 'Exit':
             console.log('Goodbye!');
@@ -60,6 +68,11 @@ const register = async () => {
         { type: 'input', name: 'email', message: 'Enter your email:' },
         { type: 'password', name: 'password', message: 'Enter your password:' },
     ]);
+    const existingUser = users.find(u => u.email === answers.email);
+    if (existingUser) {
+        console.log(chalk.redBright('Email already registered. Please use a different email.'));
+        return;
+    }
     const user = {
         id: users.length + 1,
         name: answers.name,
@@ -81,6 +94,21 @@ const login = async () => {
     }
     else {
         console.log('Invalid email or password');
+    }
+};
+const adminLogin = async () => {
+    const answers = await inquirer.prompt([
+        { type: 'input', name: 'email', message: 'Enter admin email:' },
+        { type: 'password', name: 'password', message: 'Enter admin password:' },
+    ]);
+    const admin = users.find(u => u.email === answers.email && u.password === answers.password && u.isAdmin);
+    if (admin) {
+        currentUser = admin;
+        console.log(chalk.green(`Admin login successful! Welcome, ${currentUser.name}`));
+        await adminMenu();
+    }
+    else {
+        console.log(chalk.redBright('Invalid admin email or password'));
     }
 };
 const browseEvents = async () => {
@@ -199,5 +227,144 @@ const processPayment = async (amount) => {
             paymentSuccessful = true;
         }
     }
+};
+const adminMenu = async () => {
+    const answers = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'adminAction',
+            message: 'Admin Menu - Choose an action:',
+            choices: ['Create Event', 'Edit Event', 'Delete Event', 'Back to Main Menu'],
+        },
+    ]);
+    switch (answers.adminAction) {
+        case 'Create Event':
+            await createEvent();
+            break;
+        case 'Edit Event':
+            await editEvent();
+            break;
+        case 'Delete Event':
+            await deleteEvent();
+            break;
+        case 'Back to Main Menu':
+            return;
+    }
+    await adminMenu();
+};
+const createEvent = async () => {
+    const answers = await inquirer.prompt([
+        { type: 'input', name: 'name', message: 'Enter event name:' },
+        { type: 'input', name: 'date', message: 'Enter event date (YYYY-MM-DD):' },
+        { type: 'input', name: 'venue', message: 'Enter event venue:' },
+        { type: 'input', name: 'description', message: 'Enter event description:' },
+        { type: 'number', name: 'ticketPrice', message: 'Enter ticket price:' },
+        { type: 'number', name: 'availableTickets', message: 'Enter number of available tickets:' },
+        { type: 'input', name: 'category', message: 'Enter event category:' },
+    ]);
+    const eventDate = new Date(`${answers.date}T00:00`);
+    if (eventDate <= new Date()) {
+        console.log(chalk.redBright('Event date must be in the future.'));
+        return;
+    }
+    const seatingOptions = [];
+    let addMoreSeating = true;
+    while (addMoreSeating) {
+        const seatingAnswers = await inquirer.prompt([
+            { type: 'input', name: 'type', message: 'Enter seating type (e.g., VIP, Regular):' },
+            { type: 'number', name: 'price', message: 'Enter price for this seating type:' },
+            { type: 'number', name: 'availableTickets', message: 'Enter number of available tickets for this seating type:' },
+            { type: 'confirm', name: 'addMore', message: 'Do you want to add another seating type?', default: false },
+        ]);
+        seatingOptions.push({
+            type: seatingAnswers.type,
+            price: seatingAnswers.price,
+            availableTickets: seatingAnswers.availableTickets,
+        });
+        addMoreSeating = seatingAnswers.addMore;
+    }
+    const event = {
+        id: events.length + 1,
+        name: answers.name,
+        date: answers.date,
+        venue: answers.venue,
+        description: answers.description,
+        ticketPrice: answers.ticketPrice,
+        availableTickets: answers.availableTickets,
+        category: answers.category,
+        seatingOptions: seatingOptions,
+    };
+    events.push(event);
+    console.log(chalk.green('Event created successfully!'));
+};
+const editEvent = async () => {
+    if (events.length === 0) {
+        console.log(chalk.redBright('No events available to edit.'));
+        return;
+    }
+    const eventChoices = events.map(event => ({
+        name: `${event.name} on ${event.date} at ${event.venue}`,
+        value: event.id,
+    }));
+    const eventAnswer = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'eventId',
+            message: 'Select an event to edit:',
+            choices: eventChoices,
+        },
+    ]);
+    const selectedEvent = events.find(event => event.id === eventAnswer.eventId);
+    if (!selectedEvent) {
+        console.log(chalk.redBright('Event not found.'));
+        return;
+    }
+    const answers = await inquirer.prompt([
+        { type: 'input', name: 'name', message: `Enter new name (current: ${selectedEvent.name}):`, default: selectedEvent.name },
+        { type: 'input', name: 'date', message: `Enter new date (YYYY-MM-DD) (current: ${selectedEvent.date}):`, default: selectedEvent.date },
+        { type: 'input', name: 'venue', message: `Enter new venue (current: ${selectedEvent.venue}):`, default: selectedEvent.venue },
+        { type: 'input', name: 'description', message: `Enter new description (current: ${selectedEvent.description}):`, default: selectedEvent.description },
+        { type: 'number', name: 'ticketPrice', message: `Enter new ticket price (current: ${selectedEvent.ticketPrice}):`, default: selectedEvent.ticketPrice },
+        { type: 'number', name: 'availableTickets', message: `Enter new number of available tickets (current: ${selectedEvent.availableTickets}):`, default: selectedEvent.availableTickets },
+        { type: 'input', name: 'category', message: `Enter new category (current: ${selectedEvent.category}):`, default: selectedEvent.category },
+    ]);
+    const eventDate = new Date(`${answers.date}T00:00`);
+    if (eventDate <= new Date()) {
+        console.log(chalk.redBright('Event date must be in the future.'));
+        return;
+    }
+    selectedEvent.name = answers.name;
+    selectedEvent.date = answers.date;
+    selectedEvent.venue = answers.venue;
+    selectedEvent.description = answers.description;
+    selectedEvent.ticketPrice = answers.ticketPrice;
+    selectedEvent.availableTickets = answers.availableTickets;
+    selectedEvent.category = answers.category;
+    console.log(chalk.green('Event updated successfully!'));
+};
+const deleteEvent = async () => {
+    if (events.length === 0) {
+        console.log(chalk.redBright('No events available to delete.'));
+        return;
+    }
+    const eventChoices = events.map(event => ({
+        name: `${event.name} on ${event.date} at ${event.venue}`,
+        value: event.id,
+    }));
+    const eventAnswer = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'eventId',
+            message: 'Select an event to delete:',
+            choices: eventChoices,
+        },
+    ]);
+    const eventIndex = events.findIndex(event => event.id === eventAnswer.eventId);
+    if (eventIndex === -1) {
+        console.log(chalk.redBright('Event not found.'));
+        return;
+    }
+    events.splice(eventIndex, 1);
+    console.log(chalk.green('Event deleted successfully!'));
 };
 mainMenu();
