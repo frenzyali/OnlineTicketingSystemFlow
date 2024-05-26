@@ -66,7 +66,7 @@ const register = async () => {
     const answers = await inquirer.prompt([
         { type: 'input', name: 'name', message: 'Enter your name:' },
         { type: 'input', name: 'email', message: 'Enter your email:' },
-        { type: 'password', name: 'password', message: 'Enter your password:' },
+        { type: 'input', name: 'password', message: 'Enter your password:' },
     ]);
     const existingUser = users.find(u => u.email === answers.email);
     if (existingUser) {
@@ -112,10 +112,6 @@ const adminLogin = async () => {
     }
 };
 const browseEvents = async () => {
-    if (!currentUser) {
-        console.log('You need to login first.');
-        return;
-    }
     const filterAnswers = await inquirer.prompt([
         {
             type: 'input',
@@ -182,6 +178,10 @@ const selectTickets = async (event) => {
         console.log(chalk.redBright(`Unfortunately, there are no tickets available for ${selectedSeating.type}.`));
         return;
     }
+    if (!currentUser) {
+        console.log(chalk.redBright('You need to login first.'));
+        return;
+    }
     if (selectedSeating) {
         const ticketAnswer = await inquirer.prompt([
             {
@@ -221,7 +221,9 @@ const processPayment = async (amount) => {
             console.log(chalk.redBright(`Insufficient amount. Please enter at least $${amount}.`));
         }
         else {
-            console.log(chalk.blue('Processing payment...'));
+            setTimeout(() => {
+                console.log(chalk.blue('Processing payment...'));
+            }, 2000);
             console.log(chalk.green(`Payment of $${enteredAmount} was successful!`));
             console.log(chalk.green('You will receive a confirmation email and your e-ticket shortly.'));
             paymentSuccessful = true;
