@@ -1,7 +1,7 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 const users = [
-    { id: 1, name: 'Admin', email: 'admin@example.com', password: 'admin123', isAdmin: true }
+    { id: 1, name: 'Admin', email: 'admin@example.com', password: 'admin123', phone: '12345678910', isAdmin: true }
 ];
 const events = [
     { id: 1,
@@ -64,9 +64,51 @@ const mainMenu = async () => {
 };
 const register = async () => {
     const answers = await inquirer.prompt([
-        { type: 'input', name: 'name', message: 'Enter your name:' },
-        { type: 'input', name: 'email', message: 'Enter your email:' },
-        { type: 'input', name: 'password', message: 'Enter your password:' },
+        {
+            type: 'input',
+            name: 'name',
+            message: 'Enter your name:',
+            validate: input => {
+                if (input.length < 3 || input.length > 15) {
+                    return 'Name must be between 3 and 15 characters.';
+                }
+                return true;
+            }
+        },
+        {
+            type: 'input',
+            name: 'email',
+            message: 'Enter your email:',
+            validate: input => {
+                if (!input.includes('@')) {
+                    return 'Email must contain an @ symbol.';
+                }
+                return true;
+            }
+        },
+        {
+            type: 'password',
+            name: 'password',
+            message: 'Enter your password:',
+            validate: input => {
+                if (input.length < 6 || input.length > 10) {
+                    return 'Password must be between 6 and 10 characters.';
+                }
+                return true;
+            }
+        },
+        {
+            type: 'number',
+            name: 'phone',
+            message: 'Enter your phone number:',
+            validate: input => {
+                const phoneStr = input.toString();
+                if (phoneStr.length !== 11) {
+                    return 'Phone number must be exactly 11 digits.';
+                }
+                return true;
+            }
+        }
     ]);
     const existingUser = users.find(u => u.email === answers.email);
     if (existingUser) {
@@ -78,6 +120,7 @@ const register = async () => {
         name: answers.name,
         email: answers.email,
         password: answers.password,
+        phone: answers.phone.toString()
     };
     users.push(user);
     console.log('Registration successful!');
