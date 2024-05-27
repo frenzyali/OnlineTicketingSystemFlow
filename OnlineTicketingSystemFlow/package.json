@@ -12,9 +12,11 @@
   "description": "",
   "dependencies": {
     "chalk": "^5.3.0",
+    "figlet": "^1.7.0",
     "inquirer": "^9.2.22"
   },
   "devDependencies": {
+    "@types/figlet": "^1.5.8",
     "@types/inquirer": "^9.0.7"
   }
 }

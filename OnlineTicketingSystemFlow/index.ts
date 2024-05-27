@@ -1,5 +1,9 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
+import figlet from 'figlet';
+
+console.log(chalk.yellowBright(figlet.textSync("Ali's ticketing System", {horizontalLayout: 'full'})))
+
 
 interface User {
     id: number;

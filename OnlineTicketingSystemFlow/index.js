@@ -1,5 +1,7 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
+import figlet from 'figlet';
+console.log(chalk.yellowBright(figlet.textSync("Ali's ticketing System", { horizontalLayout: 'full' })));
 const users = [
     { id: 1, name: 'Admin', email: 'admin@example.com', password: 'admin123', phone: '12345678910', isAdmin: true } // Actual Users Array and it has a predefined
 ]; // value of admin.
