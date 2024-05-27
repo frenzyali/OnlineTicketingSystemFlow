@@ -1,8 +1,8 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 const users = [
-    { id: 1, name: 'Admin', email: 'admin@example.com', password: 'admin123', phone: '12345678910', isAdmin: true }
-];
+    { id: 1, name: 'Admin', email: 'admin@example.com', password: 'admin123', phone: '12345678910', isAdmin: true } // Actual Users Array and it has a predefined
+]; // value of admin.
 const events = [
     { id: 1,
         name: 'Concert',
@@ -30,11 +30,13 @@ const events = [
         ]
     },
 ];
-let currentUser = null;
+let currentUser = null; // Before Logging in, the current user is set to null.
 const mainMenu = async () => {
     const choices = currentUser && currentUser.isAdmin
         ? ['Register', 'Login', 'Browse Events', 'Admin Menu', 'Exit']
-        : ['Register', 'Login', 'Browse Events', 'Exit'];
+        : ['Register', 'Login', 'Browse Events', 'Admin Login', 'Exit']; // Turnary operator used here as a if-else condition
+    // The condition is if the user is logged in and has admin powers, then they
+    // will have the admin menu prompt as well. Otherwise, they will not.
     const answers = await inquirer.prompt([
         {
             type: 'list',
@@ -52,6 +54,9 @@ const mainMenu = async () => {
             break;
         case 'Browse Events':
             await browseEvents();
+            break;
+        case 'Admin Login':
+            await adminLogin();
             break;
         case 'Admin Menu':
             await adminMenu();
@@ -87,7 +92,7 @@ const register = async () => {
             }
         },
         {
-            type: 'password',
+            type: 'input',
             name: 'password',
             message: 'Enter your password:',
             validate: input => {
@@ -131,7 +136,7 @@ const login = async () => {
         { type: 'password', name: 'password', message: 'Enter your password:' },
     ]);
     const user = users.find(u => u.email === answers.email && u.password === answers.password);
-    if (user) {
+    if (user) { // Login Registeration
         currentUser = user;
         console.log(`Login successful! Welcome, ${currentUser.name}`);
     }
@@ -164,7 +169,7 @@ const browseEvents = async () => {
         {
             type: 'input',
             name: 'category',
-            message: 'Enter a category to filter by (or press enter to skip):',
+            message: 'Enter a category to filter by (or press enter to skip):', // It first takes prompts and gathers the users choices
         },
         {
             type: 'input',
@@ -177,6 +182,8 @@ const browseEvents = async () => {
             (!filterAnswers.category || event.category.toLowerCase() === filterAnswers.category.toLowerCase()) &&
             (!filterAnswers.date || event.date === filterAnswers.date);
     });
+    // After gathering, it checks the prompts in the events variables and checks them if they are true or not
+    // If you skip all of the choices, you will get all of the events shown
     if (filteredEvents.length === 0) {
         console.log('No events found with the given criteria.');
         return;
@@ -207,7 +214,8 @@ const selectTickets = async (event) => {
     const seatingChoices = event.seatingOptions.map(option => ({
         name: `${option.type} - $${option.price} (Available: ${option.availableTickets})`,
         value: option.type,
-    }));
+    })); // This is the function for ticket selecting.
+    // It lets the select the number of tickets, which ticket and seating type!
     const seatingAnswer = await inquirer.prompt([
         {
             type: 'list',
@@ -260,6 +268,7 @@ const processPayment = async (amount) => {
             { type: 'number', name: 'amount', message: `Enter the amount to pay (Total: $${amount}):` }
         ]);
         const enteredAmount = paymentInfo.amount;
+        // Function for payment processing!
         if (enteredAmount < amount) {
             console.log(chalk.redBright(`Insufficient amount. Please enter at least $${amount}.`));
         }
@@ -308,7 +317,7 @@ const createEvent = async () => {
         { type: 'input', name: 'category', message: 'Enter event category:' },
     ]);
     const eventDate = new Date(`${answers.date}T00:00`);
-    if (eventDate <= new Date()) {
+    if (eventDate <= new Date()) { // This is the function for creating events(for admin users)
         console.log(chalk.redBright('Event date must be in the future.'));
         return;
     }

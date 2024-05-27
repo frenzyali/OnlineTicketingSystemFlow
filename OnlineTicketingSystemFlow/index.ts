@@ -4,14 +4,14 @@ import chalk from 'chalk';
 interface User {
     id: number;
     name: string;
-    email: string;
+    email: string;                                  // Here I define the types for the user elements in the Users Array
     password: string;
     phone: string;
     isAdmin?: boolean;
 }
 
 interface SeatingOption {
-    type: string;
+    type: string;                                   // Defined types for the seating options in the venue
     price: number;
     availableTickets: number;
 }
@@ -21,7 +21,7 @@ interface Event {
     name: string;
     date: string;
     venue: string;
-    description: string;
+    description: string;                           // Defined types for the event variables
     ticketPrice: number;
     availableTickets: number;
     category: string;
@@ -29,8 +29,8 @@ interface Event {
 }
 
 const users: User[] = [
-    { id: 1, name: 'Admin', email: 'admin@example.com', password: 'admin123', phone: '12345678910', isAdmin: true }
-];
+    { id: 1, name: 'Admin', email: 'admin@example.com', password: 'admin123', phone: '12345678910', isAdmin: true }     // Actual Users Array and it has a predefined
+];                                                                                                                      // value of admin.
 const events: Event[] = [
     {   id: 1,
         name: 'Concert',
@@ -38,7 +38,7 @@ const events: Event[] = [
         venue: 'Stadium', 
         description: 'A great concert.', 
         ticketPrice: 50, availableTickets: 100, 
-        category: 'Music', 
+        category: 'Music',                                                          // Sample Events. We can add more but i thought these were enough!
         seatingOptions: [
             { type: 'VIP', price: 100, availableTickets: 20 },
             { type: 'Regular', price: 50, availableTickets: 100 }
@@ -60,13 +60,14 @@ const events: Event[] = [
         
 ];
 
-let currentUser: User | null = null;
+let currentUser: User | null = null;                                            // Before Logging in, the current user is set to null.
 
 const mainMenu = async () => {
     const choices = currentUser && currentUser.isAdmin
         ? ['Register', 'Login', 'Browse Events', 'Admin Menu', 'Exit']
-        : ['Register', 'Login', 'Browse Events', 'Exit'];
-
+        : ['Register', 'Login', 'Browse Events', 'Admin Login', 'Exit'];                // Turnary operator used here as a if-else condition
+                                                                                        // The condition is if the user is logged in and has admin powers, then they
+                                                                                        // will have the admin menu prompt as well. Otherwise, they will not.
     const answers = await inquirer.prompt([
         {
             type: 'list',
@@ -85,6 +86,9 @@ const mainMenu = async () => {
             break;
         case 'Browse Events':
             await browseEvents();
+            break;
+        case 'Admin Login': 
+            await adminLogin();
             break;
         case 'Admin Menu':
             await adminMenu();
@@ -109,7 +113,7 @@ const register = async () => {
             }
                 return true;
             }
-        },
+        },                                                                          // Authentication registration
         { 
             type: 'input',
             name: 'email',
@@ -172,7 +176,7 @@ const login = async () => {
 
     const user = users.find(u => u.email === answers.email && u.password === answers.password);
 
-    if (user) {
+    if (user) {                                                                     // Login Registeration
         currentUser = user;
         console.log(`Login successful! Welcome, ${currentUser.name}`);
     } else {
@@ -208,8 +212,8 @@ const browseEvents = async () => {
         },
         {
             type: 'input',
-            name: 'category',
-            message: 'Enter a category to filter by (or press enter to skip):',
+            name: 'category',                                                                               // Here is the browse events function.
+            message: 'Enter a category to filter by (or press enter to skip):',                             // It first takes prompts and gathers the users choices
         },
         {
             type: 'input',
@@ -223,7 +227,8 @@ const browseEvents = async () => {
                (!filterAnswers.category || event.category.toLowerCase() === filterAnswers.category.toLowerCase()) &&
                (!filterAnswers.date || event.date === filterAnswers.date);
     });
-
+                                                                                                        // After gathering, it checks the prompts in the events variables and checks them if they are true or not
+                                                                                                        // If you skip all of the choices, you will get all of the events shown
     if (filteredEvents.length === 0) {
         console.log('No events found with the given criteria.');
         return;
@@ -261,7 +266,8 @@ const selectTickets = async (event: Event) => {
     const seatingChoices = event.seatingOptions.map(option => ({
         name: `${option.type} - $${option.price} (Available: ${option.availableTickets})`,
         value: option.type,
-    }));
+    }));                                                                                    // This is the function for ticket selecting.
+                                                                                            // It lets the select the number of tickets, which ticket and seating type!
 
     const seatingAnswer = await inquirer.prompt([
         {
@@ -323,7 +329,7 @@ const processPayment = async (amount: number) => {
         ]);
 
         const enteredAmount = paymentInfo.amount;
-        
+                                                                                                                // Function for payment processing!
         if (enteredAmount < amount) {
             console.log(chalk.redBright(`Insufficient amount. Please enter at least $${amount}.`));
         } else {
@@ -377,8 +383,8 @@ const createEvent = async () => {
     ]);
 
     const eventDate = new Date(`${answers.date}T00:00`);
-    if (eventDate <= new Date()) {
-        console.log(chalk.redBright('Event date must be in the future.'));
+    if (eventDate <= new Date()) {                                                              // This is the function for creating events(for admin users)
+        console.log(chalk.redBright('Event date must be in the future.'));                      
         return;
     }
 
@@ -430,7 +436,7 @@ const editEvent = async () => {
     }));
 
     const eventAnswer = await inquirer.prompt([
-        {
+        {                                                                                   // Functino for editing the existing events
             type: 'list',
             name: 'eventId',
             message: 'Select an event to edit:',
@@ -484,7 +490,7 @@ const deleteEvent = async () => {
 
     const eventAnswer = await inquirer.prompt([
         {
-            type: 'list',
+            type: 'list',                                               // Function for deleting the events
             name: 'eventId',
             message: 'Select an event to delete:',
             choices: eventChoices,
