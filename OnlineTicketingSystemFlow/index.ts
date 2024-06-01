@@ -146,7 +146,7 @@ const register = async () => {
             message: 'Enter your phone number:',
             validate: input => {
                 const phoneStr = input.toString();
-                if (phoneStr.length !== 11) {
+                if (phoneStr.length !== 10) {
                     return 'Phone number must be exactly 11 digits.';
                 }
                 return true;
@@ -290,7 +290,7 @@ const selectTickets = async (event: Event) => {
     }
 
     if (!currentUser) {
-        console.log(chalk.redBright('You need to login first.'));
+        console.log(chalk.redBright('You need to login or register if you are not a existing user!'));
         return;
     }
 
