@@ -335,14 +335,15 @@ const processPayment = async (amount: number) => {
         ]);
 
         const enteredAmount = paymentInfo.amount;
-                                                                                                                // Function for payment processing!
+
         if (enteredAmount < amount) {
             console.log(chalk.redBright(`Insufficient amount. Please enter at least $${amount}.`));
         } else {
-            setTimeout(() => {
-                console.log(chalk.blue('Processing payment...'));
-            }, 2000);
-            
+            console.log(chalk.blue('Processing payment...'));
+
+            // Introduce a 1-second delay to simulate payment processing
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             console.log(chalk.green(`Payment of $${enteredAmount} was successful!`));
             console.log(chalk.green('You will receive a confirmation email and your e-ticket shortly.'));
             paymentSuccessful = true;
